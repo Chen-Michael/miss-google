@@ -4,6 +4,21 @@
 <ul>
   <li>完全免費</li>
   <li>可調整語速</li>
-  <li>完整歷史資料</li>
   <li>可選擇輸出資料夾</li>
 </ul>
+
+# 安裝使用
+```
+npm i -D electron@latest
+npm i
+```
+
+# 執行
+```
+npm run start 
+```
+
+# 打包 Windows
+```
+npm run build_win 
+```
