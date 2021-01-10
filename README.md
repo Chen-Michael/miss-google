@@ -22,3 +22,9 @@ npm run start
 ```
 npm run build_win 
 ```
+
+# 作者
+Michael&nbsp;([michael@jiebu-lang.com](mailto:michael@jiebu-lang.com))</p>
+
+# 部落格
+[畢生追求為之懶](https://blog.jiebu-lang.com/)
