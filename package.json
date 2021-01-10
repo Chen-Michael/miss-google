@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "electron .",
-    "build_win": "electron-packager . MissGoogle --platform=win32 --arch=x64 --asar --overwrite --extra-resource=./ffmpeg.exe"
+    "build_win": "electron-packager . MissGoogle --platform=win32 --arch=x64 --asar --overwrite --extra-resource=./resources/ffmpeg.exe"
   },
   "author": "Mike chen",
   "license": "ISC",

@@ -1,43 +1,101 @@
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog } = require('electron');
+const fs = require("fs");
 const rootPath = require('electron-root-path').rootPath;
-const child = require('child_process').execFile;
+const exec = require('child_process').execFile;
+const axios = require('axios');
 const path = require('path');
-const fs = require('fs');
 
 function createWindow () {
     const win = new BrowserWindow({
         width: 1280,
+        minWidth: 1280,
         height: 1024,
+        minHeight: 1024,
         webPreferences: {
             nodeIntegration: true,
             preload: path.join(__dirname, 'preload.js'),
         }
     });
 
-    child(path.join(rootPath, 'resources', 'ffmpeg'), [
-        '-i',
-        path.join(rootPath, '..', '1.mp3'),
-        '-filter:a',
-        'atempo=2',
-        path.join(rootPath, '..', '_1.mp3')
-    ], function(err, data) {
-        if(err){
-           console.error(err);
-           return;
-        }
-     
-        console.log(data.toString());
-    });
+    if (fs.existsSync(path.join(rootPath, 'temp')) === false) {
+        fs.mkdirSync(path.join(rootPath, 'temp'));
+    }
 
-    // fs.mkdir(path.join(__dirname, 'test'), (err) => { 
-    //     if (err) { 
-    //         return console.error(err); 
-    //     } 
-    //     console.log('Directory created successfully!'); 
-    // });
-
-    win.webContents.openDevTools();
+    // win.webContents.openDevTools();
+    win.setMenuBarVisibility(false);
     win.loadFile('index.html');
+}
+
+function promiseFromChildProcess(child) {
+    return new Promise((resolve, reject) => {
+        child.addListener('error', reject);
+        child.addListener('exit', resolve);
+    });
+}
+
+function getVoice(text) {
+    const url = "https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=zh-TW&q=";
+    return axios.get(
+        url + encodeURIComponent(text),
+        { responseType: 'arraybuffer' }
+    );
+}
+
+function saveFile(name, buffer) {
+    return fs.promises.writeFile(name, buffer);
+}
+
+function readFile(name) {
+    return fs.promises.readFile(name);
+}
+
+function changeSpeed(speed, source, target) {
+    const child = exec(path.join(rootPath, 'resources', 'ffmpeg'), [
+        '-y',
+        '-i',
+        source,
+        '-filter:a',
+        `atempo=${speed}`,
+        target
+    ]);
+
+    return promiseFromChildProcess(child);
+}
+
+async function tryout(speed, text) {
+    const buffer = await getVoice(text);
+    const name =  `${text.replace(/(?:\r\n|\r|\n| )/g, '')}.mp3`;
+    
+    if (speed == 1) {
+        return buffer.data;
+    }
+
+    const source = path.join(rootPath, 'temp', name);
+    const target = path.join(rootPath, 'temp', `${speed}x_${name}`);
+    
+    await saveFile(source, buffer.data);
+    await changeSpeed(speed, source, target);
+    
+    return await readFile(target);
+}
+
+async function download(savePath, speed, text) {
+    const buffer = await getVoice(text);
+    const name =  `${text.replace(/(?:\r\n|\r|\n| )/g, '')}.mp3`;
+    let source;
+    let target;
+
+    if (speed == 1) {
+        source = path.join(savePath, name);
+        await saveFile(source, buffer.data);
+        return;
+    }
+
+    source = path.join(rootPath, 'temp', name);
+    target = path.join(savePath, `${speed}x_${name}`);
+
+    await saveFile(source, buffer.data);
+    await changeSpeed(speed, source, target);
 }
 
 app.whenReady().then(createWindow);
@@ -54,8 +112,31 @@ app.on('activate', () => {
     }
 });
 
-ipcMain.on('test', (event, arg) => {
-    console.log(arg) // prints "帶小貓回家"
-    event.reply('test', rootPath);
-    event.returnValue = __dirname;
+ipcMain.handle('rootPath', () => {
+    return rootPath;
+});
+
+ipcMain.handle('folder-selector', () => {
+    return dialog.showOpenDialogSync({
+        title: '選擇存放資料夾',
+        properties: ['openDirectory']
+    });
+});
+
+ipcMain.handle('tryout', async (event, speed, text) => {
+    try {
+        return await tryout(speed, text);
+    } catch (e) {
+        return null;
+    }
+});
+
+ipcMain.handle('download', async (event, savePath, speed, text) => {
+    try {
+        await download(savePath, speed, text);
+        return true;
+    } catch (e) {
+        console.log(e);
+        return null;
+    }
 });
