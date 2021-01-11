@@ -33,3 +33,6 @@ Michael&nbsp;([michael@jiebu-lang.com](mailto:michael@jiebu-lang.com))</p>
 
 # 部落格
 [畢生追求為之懶](https://blog.jiebu-lang.com/)
+
+![01](https://drive.google.com/uc?export=view&id=1SahYJ419de-8d0OWOy0oIQGtKMxOEe3z)
+![02](https://drive.google.com/uc?export=view&id=1LqfPSU4H5yFeQ_DzSJvkpbmSkuzVNPeJ)
