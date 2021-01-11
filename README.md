@@ -9,7 +9,6 @@
 
 # 安裝使用
 ```
-npm i -D electron@latest
 npm i
 ```
 
@@ -22,6 +21,12 @@ npm run start
 ```
 npm run build_win 
 ```
+
+# 打包 Mac
+```
+npm run build_mac 
+```
+> 第一次使用會被系統擋下，需手動強制開啟，若有程式能力建議自行編譯
 
 # 作者
 Michael&nbsp;([michael@jiebu-lang.com](mailto:michael@jiebu-lang.com))</p>
