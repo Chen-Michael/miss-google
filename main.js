@@ -1,9 +1,11 @@
 const { app, BrowserWindow, ipcMain, dialog } = require('electron');
-const fs = require("fs");
-const rootPath = require('electron-root-path').rootPath;
+const fs = require('fs');
+const os = require('os');
 const exec = require('child_process').execFile;
 const axios = require('axios');
 const path = require('path');
+const isPackaged = require('electron-is-packaged').isPackaged;
+const rootPath = os.platform() == 'win32' || !isPackaged ? require('electron-root-path').rootPath : path.join(require('electron-root-path').rootPath, '..');
 
 function createWindow () {
     const win = new BrowserWindow({
@@ -50,7 +52,13 @@ function readFile(name) {
 }
 
 function changeSpeed(speed, source, target) {
-    const child = exec(path.join(rootPath, 'resources', 'ffmpeg'), [
+    let ffmpeg = path.join(rootPath, 'resources', 'ffmpeg');
+
+    if (os.platform() == 'darwin' && isPackaged) {
+        ffmpeg = path.join(require('electron-root-path').rootPath, 'Contents', 'resources', 'ffmpeg');
+    }
+
+    const child = exec(ffmpeg, [
         '-y',
         '-i',
         source,
@@ -136,7 +144,6 @@ ipcMain.handle('download', async (event, savePath, speed, text) => {
         await download(savePath, speed, text);
         return true;
     } catch (e) {
-        console.log(e);
         return null;
     }
 });
